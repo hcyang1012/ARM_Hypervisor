@@ -1,6 +1,6 @@
 include config.mk
 include $(ARCH_SRC)/build.mk
-# include $(COMMON_SRC)/build.mk
+include $(COMMON_SRC)/build.mk
 # include $(DRIVER_SRC)/build.mk
 # include $(XSM_SRC)/build.mk
 

@@ -100,6 +100,8 @@
 #define UINTM_RXD       (1 << 0)
 #define UINTM_ALLI      (UINTM_MODEM | UINTM_TXD | UINTM_ERROR | UINTM_RXD)
 
+
+#define UART_BASE_ADDRESS 0x12c20000
 #endif /* __ASM_ARM_EXYNOS4210_H */
 
 /*
