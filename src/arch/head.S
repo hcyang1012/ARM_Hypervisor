@@ -9,6 +9,7 @@
 #define PT_PT     0xf7f /* nG=1 AF=1 SH=11 AP=01 NS=1 ATTR=111 T=1 P=1 */
 #define PT_MEM    0xf7d /* nG=1 AF=1 SH=11 AP=01 NS=1 ATTR=111 T=0 P=1 */
 #define PT_MEM2   0xffd /* nG=1 AF=1 SH=11 AP=11 NS=1 ATTR=111 T=0 P=1 */
+#define PT_MEM3   0x745
 #define PT_MEM_L3 0xf7f /* nG=1 AF=1 SH=11 AP=01 NS=1 ATTR=111 T=1 P=1 */
 #define PT_DEV    0xe71 /* nG=1 AF=1 SH=10 AP=01 NS=1 ATTR=100 T=0 P=1 */
 #define PT_DEV_L3 0xe73 /* nG=1 AF=1 SH=10 AP=01 NS=1 ATTR=100 T=1 P=1 */
@@ -139,13 +140,6 @@ common_start:
         bl    putn
         PRINT(" booting -\r\n")
 #endif
-
-        ldr   r0, =start
-        bl putn
-        adr r0, start
-        bl putn
-
-
         /* Check that this CPU has Hyp mode */
         mrc   CP32(r0, ID_PFR1)
         and   r0, r0, #0xf000        /* Bits 12-15 define virt extensions */
@@ -226,22 +220,19 @@ cpu_init_done:
 
         mov   r9, #0x00000000
         mov   r3, #0x0
-1:
+
         lsr   r1, r9, #FIRST_SHIFT
         lsl   r2, r1, #FIRST_SHIFT   /* Base address for 1GB mapping */
-        orr   r2, r2, #PT_UPPER(MEM2) /* r2:r3 := section map */
-        orr   r2, r2, #PT_LOWER(MEM2)
-        lsl   r1, r1, #3             /* r1 := Slot offset */
-        strd  r2, r3, [r4, r1]       /* Mapping of paddr(start) */
-        cmp   r9, #0xC0000000
-        beq   mmu_on
-        add   r9, r9, #0x40000000
-        b 1b
+        orr   r2, r2, #PT_UPPER(DEV) /* r2:r3 := section map */
+        orr   r2, r2, #PT_LOWER(DEV)
+        mov   r1, #0x0
+1:
+        strd  r2, r3, [r4, r1]
+        add   r2, r2, #0x40000000
+        add   r1, r1, #8
+        cmp   r1, #24
+        bne   1b
 
-
-
-
-mmu_on:
         PRINT("- Turning on paging -\r\n")
 
         mrc   CP32(r0, HSCTLR)
