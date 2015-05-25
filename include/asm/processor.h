@@ -254,4 +254,16 @@
 #define smp_wmb()       dmb(ishst)
 #endif //__ASSEMBLY__
 
+#define Mode_USR 0x10
+#define Mode_FIQ 0x11
+#define Mode_IRQ 0x12
+#define Mode_SVC 0x13
+#define Mode_ABT 0x17
+#define Mode_SYS 0x1F
+#define Mode_SVP 0x13
+#define Mode_UNDEF 0x1B
+#define Mode_HYP 0x1A
+#define Mode_MON 0x16
+
+
 #endif

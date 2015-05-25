@@ -36,6 +36,10 @@
 #define STACK_SIZE  (PAGE_SIZE << STACK_ORDER)
 #define HEAP_SIZE   (4096 * 4)
 
+#define KERNEL_ADDR 0x44000000
+#define KERNEL_START 0x80200000
+#define KERNEL_SIZE 3893744
+
 
 
 #endif

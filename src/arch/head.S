@@ -304,12 +304,22 @@ launch:
         beq   start_hyp              /* and disappear into the land of C */
         b     start_secondary        /* (to the appropriate entry point) */
 
+
 /* Fail-stop */
 fail:   PRINT("- Boot failed -\r\n")
 1:      wfe
         b     1b
 
+
 GLOBAL(_end_boot)
+
+/* void guest_start(unsigned long addr) */
+ENTRY(guest_start)
+  mov pc, r0
+  msr elr_hyp, r0
+  mov r0, #0x0
+  msr spsr_cxsf, #Mode_SVC
+  eret
 
 #ifdef CONFIG_EARLY_PRINTK
 /* Bring up the UART.
@@ -364,7 +374,6 @@ puts:
 putn:   mov   pc, lr
 
 #endif /* !CONFIG_EARLY_PRINTK */
-
 /*
  * Local variables:
  * mode: ASM

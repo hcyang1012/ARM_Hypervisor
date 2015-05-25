@@ -20,12 +20,13 @@ int putchar(int c)
 
 void start_hyp(unsigned long fdt_paddr,unsigned long cpuid)
 {
-  unsigned long  *kernel_addr = (unsigned long*)0x44000000;
   printf("Hello,world\n");
+  printf("We are currently in : %x\n",start_hyp);
   malloc_init();
   guest_init();
   printf("Guest init success\n");
-  printf("%x : %x\n",kernel_addr,*kernel_addr);
+  printf("Boot guest kernel\n");
+  guest_boot();
   while(1);
 }
 

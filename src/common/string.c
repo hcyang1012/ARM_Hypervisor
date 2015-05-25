@@ -39,7 +39,7 @@ void free(void *where)
 }
 
 
-void * memset(void * s,int c,size_t count)
+void *memset(void * s,int c,size_t count)
 {
 	char *xs = (char *) s;
 
@@ -47,4 +47,14 @@ void * memset(void * s,int c,size_t count)
 		*xs++ = c;
 
 	return s;
+}
+
+void *memcpy(void * dest,const void *src,size_t count)
+{
+	char *tmp = (char *) dest, *s = (char *) src;
+
+	while (count--)
+		*tmp++ = *s++;
+
+	return dest;
 }
