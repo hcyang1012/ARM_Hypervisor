@@ -5,6 +5,7 @@
 
 lpae_t boot_pgtable[LPAE_ENTRIES] __attribute__((__aligned__(4096)));
 unsigned char cpu0_stack[STACK_SIZE] __attribute__((__aligned__(STACK_SIZE)));
+unsigned char heap[HEAP_SIZE] __attribute__((__aligned__(HEAP_SIZE)));
 uint64_t init_ttbr;
 
 

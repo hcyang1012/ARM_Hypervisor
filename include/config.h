@@ -34,6 +34,7 @@
 
 #define STACK_ORDER 3
 #define STACK_SIZE  (PAGE_SIZE << STACK_ORDER)
+#define HEAP_SIZE   (4096 * 4)
 
 
 
