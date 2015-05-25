@@ -1,6 +1,7 @@
 #ifndef __ASM_CPREGS_H
 #define __ASM_CPREGS_H
 
+#include <const.h>
 /* Coprocessor 15 */
 
 /* CP15 CR0: CPUID and Cache Type Registers */
@@ -243,5 +244,46 @@
 #define VPIDR_EL2               VPIDR
 #define VTCR_EL2                VTCR
 #define VTTBR_EL2               VTTBR
+
+
+/* Stringified for inline assembly */
+#define LOAD_CP32(r, name...)  "mrc " __stringify(CP32(%r, name)) ";"
+#define STORE_CP32(r, name...) "mcr " __stringify(CP32(%r, name)) ";"
+#define LOAD_CP64(r, name...)  "mrrc " __stringify(CP64(%r, %H##r, name)) ";"
+#define STORE_CP64(r, name...) "mcrr " __stringify(CP64(%r, %H##r, name)) ";"
+
+#ifndef __ASSEMBLY__
+
+/* C wrappers */
+#define READ_CP32(name...) ({                                   \
+    register uint32_t _r;                                       \
+    asm volatile(LOAD_CP32(0, name) : "=r" (_r));               \
+    _r; })
+
+#define WRITE_CP32(v, name...) do {                             \
+    register uint32_t _r = (v);                                 \
+    asm volatile(STORE_CP32(0, name) : : "r" (_r));             \
+} while (0)
+
+#define READ_CP64(name...) ({                                   \
+    register uint64_t _r;                                       \
+    asm volatile(LOAD_CP64(0, name) : "=r" (_r));               \
+    _r; })
+
+#define WRITE_CP64(v, name...) do {                             \
+    register uint64_t _r = (v);                                 \
+    asm volatile(STORE_CP64(0, name) : : "r" (_r));             \
+} while (0)
+
+#define READ_SYSREG32(R...)     READ_CP32(R)
+#define WRITE_SYSREG32(V, R...) WRITE_CP32(V, R)
+
+#define READ_SYSREG64(R...)     READ_CP64(R)
+#define WRITE_SYSREG64(V, R...) WRITE_CP64(V, R)
+
+#define READ_SYSREG(R...)       READ_SYSREG32(R)
+#define WRITE_SYSREG(V, R...)   WRITE_SYSREG32(V, R)
+
+#endif //__ASSEMBLY__
 
 #endif

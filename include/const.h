@@ -9,5 +9,6 @@
 #define _AC(X,Y)	__AC(X,Y)
 #define _AT(T,X)	((T)(X))
 #endif
-
+#define __stringify_1(x...) #x
+#define __stringify(x...)   __stringify_1(x)
 #endif

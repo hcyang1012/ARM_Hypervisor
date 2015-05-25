@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <asm/exynos4210-uart.h>
+#include <asm/guest_init.h>
 
 int putchar(int c)
 {
@@ -19,13 +20,12 @@ int putchar(int c)
 
 void start_hyp(unsigned long fdt_paddr,unsigned long cpuid)
 {
-  int *testArray;
+  unsigned long  *kernel_addr = (unsigned long*)0x44000000;
   printf("Hello,world\n");
   malloc_init();
-  testArray = (int*)malloc(sizeof(int) * 5);
-  testArray[3] = 2;
-  printf("TestArray[3] : %d(%x)\n",testArray[3], testArray);
-
+  guest_init();
+  printf("Guest init success\n");
+  printf("%x : %x\n",kernel_addr,*kernel_addr);
   while(1);
 }
 

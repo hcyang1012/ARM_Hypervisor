@@ -6,7 +6,7 @@ PHDRS
 }
 SECTIONS
 {
-  . = 0x80200000;
+  . = 0x40000000;
   _start = .;
   .text : {
         _stext = .;

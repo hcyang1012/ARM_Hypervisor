@@ -80,6 +80,24 @@ past_zImage:
         /* Save the bootloader arguments in less-clobberable registers */
         mov   r8, r2                 /* r8 := DTB base address */
 
+        /* Relocation to start of the RAM */
+        /* r0 : source */
+        /* r1 : destination */
+        /* r2 : end */
+        /* r3, r4, r5, r6 : buffer */
+
+        adr r0, start
+        ldr r1, =start
+        ldr r2, =_end
+1:
+        ldmia r0!, {r3 ,r4, r5, r6}
+        stmia r1!, {r3 ,r4, r5, r6}
+        cmp r1, r2
+        blt 1b
+        ldr pc, =end_location
+        /* End of relocation */
+
+end_location:
         /* Find out where we are */
         ldr   r0, =start
         adr   r9, start              /* r9  := paddr (start) */

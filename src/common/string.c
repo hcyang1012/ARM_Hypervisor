@@ -1,4 +1,5 @@
 #include <config.h>
+#include <asm/types.h>
 static unsigned long malloc_ptr;
 static int malloc_count;
 extern unsigned char heap;
@@ -35,4 +36,15 @@ void free(void *where)
   malloc_count--;
   if (!malloc_count)
   malloc_ptr = free_mem_ptr;
+}
+
+
+void * memset(void * s,int c,size_t count)
+{
+	char *xs = (char *) s;
+
+	while (count--)
+		*xs++ = c;
+
+	return s;
 }
