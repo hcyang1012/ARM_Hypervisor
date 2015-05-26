@@ -37,8 +37,14 @@
 #define HEAP_SIZE   (4096 * 4)
 
 #define KERNEL_ADDR 0x44000000
-#define KERNEL_START 0x80200000
-#define KERNEL_SIZE 3893744
+#define KERNEL_START 0x82000000
+#define KERNEL_SIZE 3893640
+
+#define DTB_ADDR    0x42000000
+#define DTB_START   0x80000000
+#define DTB_SIZE    8260
+
+#define MACHINE_NUM 0xffffffff
 
 
 

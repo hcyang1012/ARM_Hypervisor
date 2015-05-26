@@ -5,4 +5,5 @@ void guest_init(void);
 void guest_ept_init(void);
 void copy_guest(void);
 void guest_boot(void);
+void copy_dtb(void);
 #endif

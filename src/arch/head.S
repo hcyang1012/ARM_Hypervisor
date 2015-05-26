@@ -85,7 +85,6 @@ past_zImage:
         /* r1 : destination */
         /* r2 : end */
         /* r3, r4, r5, r6 : buffer */
-
         adr r0, start
         ldr r1, =start
         ldr r2, =_end
@@ -315,10 +314,17 @@ GLOBAL(_end_boot)
 
 /* void guest_start(unsigned long addr) */
 ENTRY(guest_start)
-  mov pc, r0
-  msr elr_hyp, r0
+  ldr r11, =EARLY_UART_BASE_ADDRESS
+
+  ldr r12, =KERNEL_ADDR
+  msr elr_hyp, r12
+
+  ldr r12, =PSR_GUEST32_INIT
+  msr	spsr_hyp, r12
+
   mov r0, #0x0
-  msr spsr_cxsf, #Mode_SVC
+  ldr r1, =MACHINE_NUM
+  mov r2, #DTB_ADDR
   eret
 
 #ifdef CONFIG_EARLY_PRINTK

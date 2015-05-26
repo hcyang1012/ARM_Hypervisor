@@ -2,6 +2,7 @@
 #include <string.h>
 #include <asm/exynos4210-uart.h>
 #include <asm/guest_init.h>
+#include <asm/traps.h>
 
 int putchar(int c)
 {
@@ -23,6 +24,7 @@ void start_hyp(unsigned long fdt_paddr,unsigned long cpuid)
   printf("Hello,world\n");
   printf("We are currently in : %x\n",start_hyp);
   malloc_init();
+  init_traps();
   guest_init();
   printf("Guest init success\n");
   printf("Boot guest kernel\n");
