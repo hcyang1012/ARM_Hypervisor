@@ -30,13 +30,12 @@ void guest_init(void)
   // copy_dtb();
 }
 
-extern lpae_t guest_ept_L1[];
-extern lpae_t guest_ept_L2[];
-extern lpae_t guest_ept_L3[];
+extern lpae_t ept_L1[];
 void guest_ept_init(void)
 {
   int index_l1;
   unsigned long gpa = 0;
+  lpae_t *guest_ept_L1 = ept_L1;
   unsigned long vttbr_val = (unsigned long)guest_ept_L1;
   unsigned long hcr;
   printf("vttbr_val : %x\n",vttbr_val);

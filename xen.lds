@@ -125,6 +125,8 @@ SECTIONS
        __bss_end = .;
   } :text
   _end = . ;
+  . = ALIGN((1 << 14));
+  ept_L1 = .;
   /DISCARD/ : {
        *(.exit.text)
        *(.exit.data)
