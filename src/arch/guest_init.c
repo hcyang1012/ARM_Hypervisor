@@ -33,7 +33,7 @@ void guest_init(void)
 extern lpae_t ept_L1[];
 void guest_ept_init(void)
 {
-  int index_l1;
+  int index_l1, index_l2;
   unsigned long gpa = 0;
   lpae_t *guest_ept_L1 = ept_L1;
   unsigned long vttbr_val = (unsigned long)guest_ept_L1;
@@ -41,12 +41,26 @@ void guest_ept_init(void)
   printf("vttbr_val : %x\n",vttbr_val);
   for(index_l1 = 0 ; index_l1 < LPAE_ENTRIES ; index_l1++)
   {
-    lpae_t e;
-    e.bits = 0x4D5;
-    e.bits |= gpa;
-    guest_ept_L1[index_l1] = e;
-    gpa += 0x40000000;
+    // lpae_t e;
+    // e.bits = 0x4D5;
+    // e.bits |= gpa;
+    // guest_ept_L1[index_l1] = e;
+    // gpa += 0x40000000;
 
+    lpae_t e;
+    lpae_t *ept_L2 = (&guest_ept_L1[LPAE_ENTRIES] + LPAE_ENTRIES * index_l1);
+    e.bits = 0x3;
+    e.bits |= (unsigned long)ept_L2;
+    guest_ept_L1[index_l1] = e;
+
+    for(index_l2 = 0 ; index_l2 < LPAE_ENTRIES ; index_l2++)
+    {
+      lpae_t e;
+      e.bits = 0x4D5;
+      e.bits |= gpa;
+      ept_L2[index_l2] = e;
+      gpa += (1024*1024*2);
+    }
 
     // memset(&guest_ept_L1[index_l1],0,sizeof(lpae_t));
     // guest_ept_L1[index_l1].walk.base = (unsigned long)guest_ept_L2[index_l1];
