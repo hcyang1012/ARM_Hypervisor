@@ -22,15 +22,28 @@ void vctr_init(void)
   vctr_write(vctr_val);
 }
 
+
+static void guest_trap_init(void)
+{
+  unsigned long hcr;
+  hcr = READ_SYSREG(HCR_EL2);
+  // WRITE_SYSREG(hcr | HCR_TGE, HCR_EL2);
+  // hcr = READ_SYSREG(HCR_EL2);
+  printf("HCR : 0x%x\n",hcr);
+  isb();
+}
+
 void guest_init(void)
 {
   vctr_init();
   guest_ept_init();
+  guest_trap_init();
   // copy_guest();
   // copy_dtb();
 }
 
 extern lpae_t ept_L1[];
+lpae_t *ept_L2_root;
 void guest_ept_init(void)
 {
   int index_l1, index_l2;
@@ -39,6 +52,7 @@ void guest_ept_init(void)
   unsigned long vttbr_val = (unsigned long)guest_ept_L1;
   unsigned long hcr;
   printf("vttbr_val : %x\n",vttbr_val);
+  ept_L2_root = &guest_ept_L1[LPAE_ENTRIES];
   for(index_l1 = 0 ; index_l1 < LPAE_ENTRIES ; index_l1++)
   {
     // lpae_t e;
@@ -52,47 +66,17 @@ void guest_ept_init(void)
     e.bits = 0x3;
     e.bits |= (unsigned long)ept_L2;
     guest_ept_L1[index_l1] = e;
-
     for(index_l2 = 0 ; index_l2 < LPAE_ENTRIES ; index_l2++)
     {
       lpae_t e;
-      e.bits = 0x4D5;
+      //e.bits = 0x4E9; /* Read / Write OK */
+      e.bits = 0x429; /* No Acess permission */
       e.bits |= gpa;
       ept_L2[index_l2] = e;
       gpa += (1024*1024*2);
-    }
 
-    // memset(&guest_ept_L1[index_l1],0,sizeof(lpae_t));
-    // guest_ept_L1[index_l1].walk.base = (unsigned long)guest_ept_L2[index_l1];
-    // guest_ept_L1[index_l1].walk.table = 1;
-    // guest_ept_L1[index_l1].walk.valid = 1;
-    // for(index_l2 = 0 ; index_l2 < LPAE_ENTRIES ; index_l2++)
-    // {
-    //   memset(&guest_ept_L2[index_l1][index_l2],0,sizeof(lpae_t));
-    //   guest_ept_L2[index_l1][index_l2].walk.base = (unsigned long)guest_ept_L3[index_l1][index_l2];
-    //   guest_ept_L2[index_l1][index_l2].walk.table = 1;
-    //   guest_ept_L2[index_l1][index_l2].walk.valid = 1;
-    //   for(index_l3 = 0 ; index_l3 < LPAE_ENTRIES ; index_l3++)
-    //   {
-    //     lpae_t e = (lpae_t) {
-    //       .pt = {
-    //         .xn = 0,              /* No need to execute outside .text */
-    //         .ng = 1,              /* Makes TLB flushes easier */
-    //         .af = 1,              /* No need for access tracking */
-    //         .ns = 1,              /* Hyp mode is in the non-secure world */
-    //         .user = 1,            /* See below */
-    //         .ai = 0,
-    //         .table = 1,           /* Set to 1 for links and 4k maps */
-    //         .valid = 1,           /* Mappings are present */
-    //         .base = gpa
-    //       }};
-    //       memset(&guest_ept_L3[index_l1][index_l2][index_l3],0,sizeof(lpae_t));
-    //       gpa += 4096;
-    //       guest_ept_L3[index_l1][index_l2][index_l3] = e;
-    //     }
-    //   }
     }
-
+  }
     // Write EPT to VTTBR
     //WRITE_SYSREG64(vttbr_val,VTTBR_EL2);
     asm volatile(
@@ -105,8 +89,7 @@ void guest_ept_init(void)
 
     // Turn on Stage 2 Address Translation
     hcr = READ_SYSREG(HCR_EL2);
-    printf("HCR : %x\n",hcr);
-    WRITE_SYSREG(hcr | HCR_VM, HCR_EL2);
+    WRITE_SYSREG(hcr | HCR_PTW | HCR_VM, HCR_EL2);
     isb();
 }
 

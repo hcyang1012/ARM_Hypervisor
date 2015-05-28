@@ -12,6 +12,7 @@
 #define PT_MEM3   0x745
 #define PT_MEM_L3 0xf7f /* nG=1 AF=1 SH=11 AP=01 NS=1 ATTR=111 T=1 P=1 */
 #define PT_DEV    0xe71 /* nG=1 AF=1 SH=10 AP=01 NS=1 ATTR=100 T=0 P=1 */
+#define PT_DEV2   0xF71 /* nG=1 AF=1 SH=10 AP=01 NS=1 ATTR=100 T=0 P=1 */
 #define PT_DEV_L3 0xe73 /* nG=1 AF=1 SH=10 AP=01 NS=1 ATTR=100 T=1 P=1 */
 
 #define PT_UPPER(x) (PT_##x & 0xf00)
@@ -240,8 +241,8 @@ cpu_init_done:
 
         lsr   r1, r9, #FIRST_SHIFT
         lsl   r2, r1, #FIRST_SHIFT   /* Base address for 1GB mapping */
-        orr   r2, r2, #PT_UPPER(DEV) /* r2:r3 := section map */
-        orr   r2, r2, #PT_LOWER(DEV)
+        orr   r2, r2, #PT_UPPER(DEV2) /* r2:r3 := section map */
+        orr   r2, r2, #PT_LOWER(DEV2)
         mov   r1, #0x0
 1:
         strd  r2, r3, [r4, r1]
@@ -356,6 +357,7 @@ puts:
  * r0: Number to print.
  * r11: Early UART base address
  * Clobbers r0-r3 */
+.globl putn
 putn:
         adr   r1, hex
         mov   r3, #8

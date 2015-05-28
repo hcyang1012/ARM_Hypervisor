@@ -1,6 +1,6 @@
 #ifndef __ASM_TRAPS_H
 #define __ASM_TRAPS_H
-
+#include <asm/types.h>
 
 void init_traps(void);
 #ifndef __ASSEMBLY__
@@ -50,7 +50,7 @@ union hsr {
         unsigned long crm:4;    /* CRm */
         unsigned long reg1:5;   /* Rt1 */
         unsigned long reg2:5;   /* Rt2 */
-        unsigned long sbzp2:1;
+        unsigned long sbzp:1;
         unsigned long op1:4;    /* Op1 */
         unsigned long cc:4;     /* Condition Code */
         unsigned long ccvalid:1;/* CC Valid */
@@ -83,6 +83,17 @@ union hsr {
         unsigned long ec:6;    /* Exception Class */
     } dabt; /* HSR_EC_DATA_ABORT_* */
 };
+
+
+enum EPT_VIOLATION_REASON {PREFETCH = 0, DABT};
+struct ept_violation_info_t
+{
+    union hsr hsr;
+    enum EPT_VIOLATION_REASON reason;
+    vaddr_t gva;
+    paddr_t gpa;
+} ;
+
 
 #endif /* __ASSEMBLY__ */
 

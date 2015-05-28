@@ -25,6 +25,9 @@
 #define MAIR1VAL 0xff000004
 #define MAIRVAL (MAIR0VAL|MAIR1VAL<<32)
 
+#define PADDR_BITS              40
+#define PADDR_MASK              ((1ULL << PADDR_BITS)-1)
+
 
 #ifndef __ASSEMBLY__
 typedef struct __packed {

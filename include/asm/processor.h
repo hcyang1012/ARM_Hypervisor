@@ -299,4 +299,20 @@
 
 #define PSR_GUEST32_INIT  (PSR_ABT_MASK|PSR_FIQ_MASK|PSR_IRQ_MASK|PSR_MODE_SVC)
 
+/* Physical Address Register */
+#define PAR_F           (_AC(1,U)<<0)
+
+/* .... If F == 1 */
+#define PAR_FSC_SHIFT   (1)
+#define PAR_FSC_MASK    (_AC(0x3f,U)<<PAR_FSC_SHIFT)
+#define PAR_STAGE21     (_AC(1,U)<<8)     /* Stage 2 Fault During Stage 1 Walk */
+#define PAR_STAGE2      (_AC(1,U)<<9)     /* Stage 2 Fault */
+
+/* If F == 0 */
+#define PAR_MAIR_SHIFT  56                       /* Memory Attributes */
+#define PAR_MAIR_MASK   (0xffLL<<PAR_MAIR_SHIFT)
+#define PAR_NS          (_AC(1,U)<<9)                   /* Non-Secure */
+#define PAR_SH_SHIFT    7                        /* Shareability */
+#define PAR_SH_MASK     (_AC(3,U)<<PAR_SH_SHIFT)
+
 #endif
