@@ -69,8 +69,8 @@ void guest_ept_init(void)
     for(index_l2 = 0 ; index_l2 < LPAE_ENTRIES ; index_l2++)
     {
       lpae_t e;
-      //e.bits = 0x4E9; /* Read / Write OK */
-      e.bits = 0x429; /* No Acess permission */
+      e.bits = 0x7FD; /* Read / Write OK */
+      //e.bits = 0x73D; /* No Acess permission */
       e.bits |= gpa;
       ept_L2[index_l2] = e;
       gpa += (1024*1024*2);
