@@ -61,6 +61,7 @@ typedef unsigned long size_t;
 typedef signed long ssize_t;
 
 typedef char bool_t;
+typedef bool_t bool;
 
 #ifndef NULL
 #define NULL ((void*)0)

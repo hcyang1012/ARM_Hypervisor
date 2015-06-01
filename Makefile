@@ -1,6 +1,7 @@
 include config.mk
 include $(ARCH_SRC)/build.mk
 include $(COMMON_SRC)/build.mk
+include $(MODULES_SRC)/build.mk
 # include $(DRIVER_SRC)/build.mk
 # include $(XSM_SRC)/build.mk
 
@@ -12,7 +13,7 @@ all:clean elf
 elf: build
 	$(LD) $(LDFLAGS) -T xen.lds -o boot.o  $(LINK_TARGETS)
 
-build: build-arch build-common drivers xsm
+build: build-arch build-common drivers xsm modules
 
 build-arch:$(BUILD-ARCH) $(BUILD-ARCH-ASM)
 
@@ -37,6 +38,11 @@ xsm:$(BUILD-XSM)
 $(BUILD-XSM):
 	$(CC) $(CFLAGS) -c $(SRC)/$*.c -o $(BIN)/$*.o
 
+
+modules:$(BUILD-MODULES)
+
+$(BUILD-MODULES):
+		$(CC) $(CFLAGS) -c $(SRC)/$*.c -o $(BIN)/$*.o
 
 xen.lds: xen.lds.S
 	@echo "################Xen.lds buliding..##################"
