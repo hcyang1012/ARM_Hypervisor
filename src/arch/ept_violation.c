@@ -13,11 +13,11 @@ extern lpae_t ept_L1[];
 
 static inline void flush_tlb(void)
 {
-  unsigned long
-  hcr = READ_SYSREG(HCR_EL2);
-  WRITE_SYSREG(hcr & ~HCR_VM, HCR_EL2);
-  isb();
-  WRITE_SYSREG(hcr , HCR_EL2);
+  dsb(sy);
+
+  WRITE_CP32((uint32_t) 0, TLBIALLNSNHIS);
+
+  dsb(sy);
   isb();
 }
 
@@ -25,19 +25,29 @@ void ept_violation_handler(struct ept_violation_info_t info)
 {
   lpae_t *ept;
   unsigned long tmp;
+  unsigned long hcr = READ_SYSREG(HCR_EL2);
+
   printf("EPT Violation : %s\n",info.reason == PREFETCH ? "prefetch" : "data");
   printf("PC : %x\n",vcpu.hyp_lr);
   printf("GVA : 0x%x\n",info.gva);
   printf("GPA : 0x%x\n",(unsigned long)info.gpa);
+  isb();
+  dsb();
+  WRITE_SYSREG(hcr & ~HCR_VM, HCR_EL2);
+  isb();
+  dsb();
   ept = get_ept_entry(info.gpa);
   tmp = ept->bits & 0xFFFFFFFF;
   printf("EPT Entry : 0x%x(0x%x)\n",ept,tmp);
   printf("Enable EPT Access\n");
-  //ept->bits |= 0xC0;
   ept->p2m.read = 1;
   ept->p2m.write = 1;
   isb();
-  dsb();
+  dsb(sy);
+  WRITE_SYSREG(hcr | HCR_VM, HCR_EL2);
+  isb();
+  dsb(sy);
+  clean_and_invalidate_dcache_va_range(ept, PAGE_SIZE);
   flush_tlb();
 }
 

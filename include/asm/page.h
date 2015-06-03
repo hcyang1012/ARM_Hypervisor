@@ -2,6 +2,8 @@
 #define __ASM_PAGE_H
 
 #include <asm/types.h>
+#include <asm/cpregs.h>
+#include <asm/processor.h>
 #include <const.h>
 #include <compiler.h>
 
@@ -27,9 +29,24 @@
 
 #define PADDR_BITS              40
 #define PADDR_MASK              ((1ULL << PADDR_BITS)-1)
-
-
 #ifndef __ASSEMBLY__
+
+#define __clean_and_invalidate_dcache_one(R) STORE_CP32(R, DCCIMVAC)
+#define __clean_dcache_one(R) STORE_CP32(R, DCCMVAC)
+extern size_t cacheline_bytes;
+static inline int clean_and_invalidate_dcache_va_range
+    (const void *p, unsigned long size)
+{
+    const void *end;
+    dsb(sy);         /* So the CPU issues all writes to the range */
+    for ( end = p + size; p < end; p += cacheline_bytes )
+        asm volatile (__clean_and_invalidate_dcache_one(0) : : "r" (p));
+    dsb(sy);         /* So we know the flushes happen before continuing */
+    /* ARM callers assume that dcache_* functions cannot fail. */
+    return 0;
+}
+
+
 typedef struct __packed {
     /* These are used in all kinds of entry. */
     unsigned long valid:1;      /* Valid mapping */
