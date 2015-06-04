@@ -1,5 +1,6 @@
 #include <asm/ept_violation.h>
 #include <asm/types.h>
+#include <asm/page.h>
 #include <swtpm/swtpm.h>
 #include <stdio.h>
 
@@ -23,4 +24,14 @@ int handle_mmio(struct ept_violation_info_t *info)
   }
 
   return 0;
+}
+
+/* Add mmio functions */
+void init_mmio(void)
+{
+  //SWTPM
+  lpae_t *tpm_entry=get_ept_entry((paddr_t)TPM_MEM_BASE);
+  tpm_entry->p2m.read = 0;
+  tpm_entry->p2m.write = 0;
+  apply_ept(tpm_entry);
 }

@@ -68,7 +68,7 @@ void do_handler_hvc(void)
 {
   union hsr hsr = { .bits = READ_SYSREG32(ESR_EL2) };
   struct ept_violation_info_t ept_violation_info;
-  printf("do_hvc : 0x%x\n",hsr.ec);
+  // printf("do_hvc : 0x%x\n",hsr.ec);
   //print_vcpu();
   switch(hsr.ec)
   {
@@ -81,7 +81,7 @@ void do_handler_hvc(void)
       ept_violation_handler(ept_violation_info);
       break;
     case HSR_EC_DATA_ABORT_LOWER_EL:    // EPT Violation - Data Abort
-      printf("Data abort : %x\n",hsr.bits);
+      // printf("Data abort : %x\n",hsr.bits);
       ept_violation_info.hsr = hsr;
       ept_violation_info.reason = DABT;
       ept_violation_info.gva = READ_CP32(HDFAR);

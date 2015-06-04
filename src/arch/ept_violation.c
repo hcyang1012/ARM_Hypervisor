@@ -17,7 +17,6 @@ void advance_pc(struct ept_violation_info_t *info)
 {
   vcpu.hyp_lr += info->hsr.len ? 4 : 2;
 }
-
 static inline void flush_tlb(void)
 {
   dsb(sy);
@@ -27,17 +26,27 @@ static inline void flush_tlb(void)
   dsb(sy);
   isb();
 }
-
+void apply_ept(lpae_t *ept)
+{
+    isb();
+    dsb();
+    clean_and_invalidate_dcache_va_range(ept, PAGE_SIZE);
+    isb();
+    dsb();
+    flush_tlb();
+    isb();
+    dsb();
+}
 void ept_violation_handler(struct ept_violation_info_t info)
 {
   // lpae_t *ept;
   // unsigned long tmp;
   // unsigned long hcr = READ_SYSREG(HCR_EL2);
-
-  printf("EPT Violation : %s\n",info.reason == PREFETCH ? "prefetch" : "data");
-  printf("PC : %x\n",vcpu.hyp_lr);
-  printf("GVA : 0x%x\n",info.gva);
-  printf("GPA : 0x%x\n",(unsigned long)info.gpa);
+  //
+  // printf("EPT Violation : %s\n",info.reason == PREFETCH ? "prefetch" : "data");
+  // printf("PC : %x\n",vcpu.hyp_lr);
+  // printf("GVA : 0x%x\n",info.gva);
+  // printf("GPA : 0x%x\n",(unsigned long)info.gpa);
   if(handle_mmio(&info))
   {
 

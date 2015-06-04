@@ -5,6 +5,7 @@
 #include <asm/traps.h>
 #include <asm/cpregs.h>
 #include <asm/processor.h>
+#include <asm/mmio.h>
 #include <swtpm/init.h>
 
 int putchar(int c)
@@ -43,6 +44,7 @@ void start_hyp(unsigned long fdt_paddr,unsigned long cpuid)
   init_traps();
   guest_init();
   swtpm_init();
+  init_mmio();
   printf("Guest init success\n");
   printf("Boot guest kernel\n");
   guest_boot();
