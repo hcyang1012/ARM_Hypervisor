@@ -59,6 +59,7 @@ static bool isInMemory(unsigned long gpa)
 
 extern lpae_t ept_L1[];
 lpae_t *ept_L2_root;
+lpae_t *ept_L3_root;
 void guest_ept_init(void)
 {
   int index_l1, index_l2;
@@ -66,16 +67,10 @@ void guest_ept_init(void)
   lpae_t *guest_ept_L1 = ept_L1;
   unsigned long vttbr_val = (unsigned long)guest_ept_L1;
   unsigned long hcr;
-  printf("vttbr_val : %x\n",vttbr_val);
+
   ept_L2_root = &guest_ept_L1[LPAE_ENTRIES];
   for(index_l1 = 0 ; index_l1 < LPAE_ENTRIES ; index_l1++)
   {
-    // lpae_t e;
-    // e.bits = 0x4D5;
-    // e.bits |= gpa;
-    // guest_ept_L1[index_l1] = e;
-    // gpa += 0x40000000;
-
     lpae_t e;
     lpae_t *ept_L2 = (&guest_ept_L1[LPAE_ENTRIES] + LPAE_ENTRIES * index_l1);
     e.bits = 0x3;
@@ -94,7 +89,7 @@ void guest_ept_init(void)
         /* Set attibutes for RAM area */
         e.p2m.mattr = 0xF; /* 1111b: Outer Write-back Cacheable / Inner write-back cacheable */
         e.p2m.read = 1;
-        e.p2m.write = 1;        
+        e.p2m.write = 1;
         // e.p2m.read = 0;
         // e.p2m.write = 0;
         e.p2m.xn = 0;
