@@ -42,7 +42,7 @@ void start_hyp(unsigned long fdt_paddr,unsigned long cpuid)
   malloc_init();
   init_traps();
   guest_init();
-  //swtpm_init();
+  swtpm_init();
   printf("Guest init success\n");
   printf("Boot guest kernel\n");
   guest_boot();

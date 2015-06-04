@@ -93,8 +93,10 @@ void guest_ept_init(void)
       {
         /* Set attibutes for RAM area */
         e.p2m.mattr = 0xF; /* 1111b: Outer Write-back Cacheable / Inner write-back cacheable */
-        e.p2m.read = 0;
-        e.p2m.write = 0;
+        e.p2m.read = 1;
+        e.p2m.write = 1;        
+        // e.p2m.read = 0;
+        // e.p2m.write = 0;
         e.p2m.xn = 0;
       }
       else

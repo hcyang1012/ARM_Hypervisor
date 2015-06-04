@@ -3,7 +3,7 @@
 #include <asm/types.h>
 
 void malloc_init(void);
-void *malloc(int size);
+void * malloc(size_t nbytes);
 void free(void *where);
 void *memset(void * s,int c,size_t count);
 void *memcpy(void * dest,const void *src,size_t count);
