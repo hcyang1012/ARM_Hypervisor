@@ -5,6 +5,10 @@
 #include <xen/types.h>
 #endif
 
+#ifdef THIN_HYP
+#include <asm/ept_violation.h>
+#endif
+
 #define TPM_CMD_BUF_SIZE	4096
 
 // wizrampa
@@ -72,7 +76,7 @@ typedef union {
 		u8 commandReadyEnable       :  1; /* RW, 0= disable, 1= enable */
 		u32 reserved2               : 23; /* always return 0 */
 		u8 globalIntEnable          :  1; /* RW, 0= all ints disable */
-        };  
+        };
 } tpm_reg_int_enable_t;
 
 typedef union {
@@ -138,5 +142,8 @@ typedef union {
 
 int assert_swtpm_running (void);
 int integrate_swtpm (u8 *in, u32 *in_size, u8 *out, u32 *out_size);
-
+#ifdef THIN_HYP
+void tpm_mmio_read(struct ept_violation_info_t *info);
+void tpm_mmio_write(struct ept_violation_info_t *info);
+#endif
 #endif

@@ -12,6 +12,12 @@
 extern cpu_t vcpu;
 extern lpae_t ept_L1[];
 
+
+void advance_pc(struct ept_violation_info_t *info)
+{
+  vcpu.hyp_lr += info->hsr.len ? 4 : 2;
+}
+
 static inline void flush_tlb(void)
 {
   dsb(sy);

@@ -404,11 +404,11 @@ int tpm_mmio_write(struct vcpu *v, mmio_info_t *info)
 #elif defined (THIN_HYP)
 void tpm_mmio_read(struct ept_violation_info_t *info)
 {
-
+  printf("TPM_MMIO_READ\n");
 }
 void tpm_mmio_write(struct ept_violation_info_t *info)
 {
-
+  printf("TPM_MMIO_WRITE\n");
 }
 #else
 int tpm_fake_handler (void *data, phys_t gphys, bool wr, void *buf, uint len, u32 flags)
