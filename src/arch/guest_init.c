@@ -42,6 +42,21 @@ void guest_init(void)
   // copy_dtb();
 }
 
+
+/* Return the cache property of the input gpa */
+/* It is determined depending on whether the address is for device or memory */
+static bool isInMemory(unsigned long gpa)
+{
+  if(RAM_START <= gpa && gpa <= RAM_END)
+  {
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
+}
+
 extern lpae_t ept_L1[];
 lpae_t *ept_L2_root;
 void guest_ept_init(void)
@@ -69,8 +84,30 @@ void guest_ept_init(void)
     for(index_l2 = 0 ; index_l2 < LPAE_ENTRIES ; index_l2++)
     {
       lpae_t e;
+      e.bits = 0;
+      e.p2m.sh = 0x3;
+      e.p2m.table = 0;
+      e.p2m.valid = 1;
+      e.p2m.af = 1;
+      if(isInMemory(gpa))
+      {
+        /* Set attibutes for RAM area */
+        e.p2m.mattr = 0xF; /* 1111b: Outer Write-back Cacheable / Inner write-back cacheable */
+        e.p2m.read = 0;
+        e.p2m.write = 0;
+        e.p2m.xn = 0;
+      }
+      else
+      {
+        /* Set attributes for Device area */
+        e.p2m.mattr = 0x1; /* 0001b: Device memory */
+        e.p2m.read = 1;
+        e.p2m.write = 1;
+        e.p2m.xn = 1;
+      }
+
       //e.bits = 0x7FD; /* Read / Write OK */
-      e.bits = 0x73D; /* No Acess permission */
+      //e.bits = 0x73D; /* No Acess permission */
       e.bits |= gpa;
       ept_L2[index_l2] = e;
       gpa += (1024*1024*2);

@@ -28,7 +28,7 @@ cpsid i;                                                         \
 save_guest_context;                                              \
 bl do_handler_##trap;                                            \
 restore_guest_context;																					\
-cpsie i;																										\
+/*cpsie i;																										\*/\
 eret;
 
 .align 5
