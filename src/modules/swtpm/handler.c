@@ -11,6 +11,7 @@
 #include <asm/ept_violation.h>
 #include <stdio.h>
 #include <string.h>
+#include <asm/traps.h>
 #endif
 
 #include <swtpm/tcg.h>
@@ -403,21 +404,26 @@ return 1;
 }
 #elif defined (THIN_HYP)
 extern cpu_t vcpu;
-void tpm_mmio_read(struct ept_violation_info_t *info)
+void tpm_mmio_read(const struct ept_violation_info_t *info)
 {
-  paddr_t gphys = info->gpa;
-  struct hsr_dabt dabt = info->hsr.dabt;
-  register_t *r = select_user_reg(dabt.reg);
-  void *buf = (void*)r;
-  unsigned long len = 1<<(dabt.size & 0x00000003);
+  paddr_t gphys;
+  unsigned long regNum;
+  register_t *r;
+  void *buf;
+  unsigned long len;
   //unsigned long len = dabt.size;
   u8 *p, x;
   int i;
   x = 0x00;
-  printf("Read\n");
+  gphys = info->gpa;
+  regNum = info->hsr.dabt.reg;
+  r = (register_t*)select_user_reg(regNum);
+  len = 1<<(info->hsr.dabt.size & 0x00000003);
+  buf = (void*)r;
   //p = mapmem_hphys (TPM_FAKE_MEM_BASE, len, (wr ? MAPMEM_WRITE : 0) | flags);
   //p = mapmem_hphys (gphys, len, (wr ? MAPMEM_WRITE : 0) | flags);
   p = (u8*)(unsigned long)gphys;
+  printf("Read Violation from 0x%x to R%d at (0x%x)\n",gphys,regNum,vcpu.hyp_lr);
 
   if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_DID_VID)) // Get Vendor and Device ID
   {
@@ -565,15 +571,24 @@ else
     }
   }
 }
-}
-void tpm_mmio_write(struct ept_violation_info_t *info)
-{
 
-  paddr_t gphys = info->gpa;
-  struct hsr_dabt dabt = info->hsr.dabt;
-  register_t *r = select_user_reg(dabt.reg);
-  void *buf = (void*)r;
-  printf("Write\n");
+}
+void tpm_mmio_write(const struct ept_violation_info_t *info)
+{
+  paddr_t gphys;
+  unsigned long regNum;
+  register_t *r;
+  void *buf;
+  unsigned long len;
+  //unsigned long len = dabt.size;
+  u8 x;
+  x = 0x00;
+  gphys = info->gpa;
+  regNum = info->hsr.dabt.reg;
+  r = (register_t*)select_user_reg(regNum);
+  len = 1<<(info->hsr.dabt.size & 0x00000003);
+  buf = (void*)r;
+  
   //    debug("TPM_Write hanadler called");
   if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_ACCESS)) // Write TPM commands
   {
@@ -907,8 +922,7 @@ else
     *((u8 *)buf + i) = p[i];
   }
 }
-}
-
+} 
 unmapmem (p, len);
 
 return 1;

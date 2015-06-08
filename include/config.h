@@ -36,8 +36,8 @@
 #define STACK_SIZE  (PAGE_SIZE << STACK_ORDER)
 #define HEAP_SIZE   (4096 * 8)
 
-#define RAM_START   0x20000000
-#define RAM_END     (0x40000000 + 0x80000000)
+#define RAM_START   ((unsigned long long)0x40000000)
+#define RAM_END     (RAM_START + 0x40000000)
 
 #define KERNEL_ADDR 0x44000000
 #define KERNEL_START 0x82000000

@@ -44,7 +44,6 @@ void start_hyp(unsigned long fdt_paddr,unsigned long cpuid)
   init_traps();
   guest_init();
   swtpm_init();
-  init_mmio();
   printf("Guest init success\n");
   printf("Boot guest kernel\n");
   guest_boot();

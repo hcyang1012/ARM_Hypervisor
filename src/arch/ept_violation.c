@@ -37,7 +37,7 @@ void apply_ept(lpae_t *ept)
     isb();
     dsb();
 }
-void ept_violation_handler(struct ept_violation_info_t info)
+void ept_violation_handler(struct ept_violation_info_t *info)
 {
   // lpae_t *ept;
   // unsigned long tmp;
@@ -47,7 +47,7 @@ void ept_violation_handler(struct ept_violation_info_t info)
   // printf("PC : %x\n",vcpu.hyp_lr);
   // printf("GVA : 0x%x\n",info.gva);
   // printf("GPA : 0x%x\n",(unsigned long)info.gpa);
-  if(handle_mmio(&info))
+  if(handle_mmio(info))
   {
 
   }

@@ -4,6 +4,7 @@
 #include <asm/page.h>
 #include <asm/types.h>
 #include <asm/guest_init.h>
+#include <asm/mmio.h>
 #include <string.h>
 #include <config.h>
 #include <stdio.h>
@@ -101,6 +102,7 @@ void guest_ept_init(void)
         e.p2m.read = 1;
         e.p2m.write = 1;
         e.p2m.xn = 1;
+        e.p2m.sh = 0x0;
       }
 
       //e.bits = 0x7FD; /* Read / Write OK */
@@ -111,6 +113,11 @@ void guest_ept_init(void)
 
     }
   }
+  dsb();
+  isb();
+  init_mmio();
+  dsb();
+  isb();
     // Write EPT to VTTBR
     //WRITE_SYSREG64(vttbr_val,VTTBR_EL2);
     asm volatile(
@@ -120,7 +127,6 @@ void guest_ept_init(void)
   		: "r"(vttbr_val)
   		: "r1"
   		);
-
     // Turn on Stage 2 Address Translation
     hcr = READ_SYSREG(HCR_EL2);
     WRITE_SYSREG(hcr | HCR_PTW | HCR_VM, HCR_EL2);

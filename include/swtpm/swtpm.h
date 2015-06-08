@@ -7,6 +7,7 @@
 
 #ifdef THIN_HYP
 #include <asm/ept_violation.h>
+#include <asm/traps.h>
 #endif
 
 #define TPM_CMD_BUF_SIZE	4096
@@ -143,7 +144,7 @@ typedef union {
 int assert_swtpm_running (void);
 int integrate_swtpm (u8 *in, u32 *in_size, u8 *out, u32 *out_size);
 #ifdef THIN_HYP
-void tpm_mmio_read(struct ept_violation_info_t *info);
-void tpm_mmio_write(struct ept_violation_info_t *info);
+void tpm_mmio_read(const struct ept_violation_info_t *info);
+void tpm_mmio_write(const struct ept_violation_info_t *info);
 #endif
 #endif
