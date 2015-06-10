@@ -3,4 +3,5 @@
 #include <asm/ept_violation.h>
 int handle_mmio(struct ept_violation_info_t *info);
 void init_mmio(void);
+int isMMIO(paddr_t gpa);
 #endif

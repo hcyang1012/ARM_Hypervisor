@@ -22,6 +22,9 @@ static inline void flush_tlb(void)
   dsb(sy);
 
   WRITE_CP32((uint32_t) 0, TLBIALLNSNHIS);
+  WRITE_CP32((uint32_t) 0, TLBIALLIS);
+  
+  WRITE_CP32((uint32_t) 0, TLBIALLH);
 
   dsb(sy);
   isb();
@@ -42,13 +45,14 @@ void ept_violation_handler(struct ept_violation_info_t *info)
   lpae_t *ept;
   unsigned long tmp;
   
-  printf("EPT Violation : %s\n",info->reason == PREFETCH ? "prefetch" : "data");
-  printf("PC : %x\n",vcpu.hyp_lr);
-  printf("GVA : 0x%x\n",info->gva);
-  printf("GPA : 0x%x\n",(unsigned long)info->gpa);
+  // printf("EPT Violation : %s\n",info->reason == PREFETCH ? "prefetch" : "data");
+  // printf("PC : %x\n",vcpu.hyp_lr);
+  // printf("GVA : 0x%x\n",info->gva);
+  // printf("GPA : 0x%x\n",(unsigned long)info->gpa);
+  // printf("Register : R%d\n", info->hsr.dabt.reg);
   ept = get_ept_entry(info->gpa);
   tmp = ept->bits & 0xFFFFFFFF;
-  printf("EPT Entry : 0x%x(0x%x)\n",ept,tmp);  
+  // printf("EPT Entry : 0x%x(0x%x)\n",ept,tmp);  
   if(handle_mmio(info))
   {
 

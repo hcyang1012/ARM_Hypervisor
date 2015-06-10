@@ -119,8 +119,8 @@ void guest_ept_init(void)
         entry_l3.p2m.valid = 1;
         entry_l3.p2m.table = 1;
         entry_l3.p2m.af = 1;
-        entry_l3.p2m.read = 1;
-        entry_l3.p2m.write = 1;
+        entry_l3.p2m.read = 0;
+        entry_l3.p2m.write = 0;
         entry_l3.p2m.mattr = 0xF;
         entry_l3.p2m.sh = 0x03;
         entry_l3.p2m.xn = 0x0;
@@ -130,13 +130,26 @@ void guest_ept_init(void)
           /* RAM area */
           entry_l3.p2m.sh = 0x03;
           entry_l3.p2m.mattr = 0xF; /* 1111b: Outer Write-back Cacheable / Inner write-back cacheable */
+          entry_l3.p2m.read = 1;
+          entry_l3.p2m.write = 1;            
         }
         else
         {
           /* Device area */
+          if(isMMIO(gpa))
+          {
+            printf("Write MMIO Area : 0x%x\n",(unsigned long)gpa);
+            entry_l3.p2m.read = 0;
+            entry_l3.p2m.write = 0;            
+          }
+          else
+          {
+            entry_l3.p2m.read = 1;
+            entry_l3.p2m.write = 1;            
+          }
           entry_l3.p2m.mattr = 0x1; /* 0001b: Device Memory */
           entry_l3.p2m.sh = 0x0;
-          entry_l3.p2m.xn = 1;          
+          entry_l3.p2m.xn = 1;   
         }
         entry_l3.bits |= gpa;
         ept_l3[index_l3].bits = entry_l3.bits;
@@ -180,8 +193,9 @@ void guest_ept_init(void)
   		: "r1"
   		);
     // Turn on Stage 2 Address Translation
-    hcr = READ_SYSREG(HCR_EL2);
-    WRITE_SYSREG(hcr | HCR_PTW | HCR_VM, HCR_EL2);
+    //hcr = READ_SYSREG(HCR_EL2);
+    hcr = 0x0;
+    WRITE_SYSREG(hcr | HCR_BSU_INNER | HCR_SWIO | HCR_VM, HCR_EL2);
     isb();
 }
 

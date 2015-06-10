@@ -423,154 +423,162 @@ void tpm_mmio_read(const struct ept_violation_info_t *info)
   //p = mapmem_hphys (TPM_FAKE_MEM_BASE, len, (wr ? MAPMEM_WRITE : 0) | flags);
   //p = mapmem_hphys (gphys, len, (wr ? MAPMEM_WRITE : 0) | flags);
   p = (u8*)(unsigned long)gphys;
-  printf("Read Violation from 0x%x to R%d at (0x%x)\n",gphys,regNum,vcpu.hyp_lr);
-
   if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_DID_VID)) // Get Vendor and Device ID
-  {
-    //printf ("[TPM SW HANDLER] READ Vendor and Device ID: len = %d\n", len);
-
-    for (i = 0; i < len; i++)
     {
-      /*if ((gphys + i) * 1)
-      *((u8 *)buf + 1) = tpmVendorID[i] ^ x;
-      else
-      *((u8 *)buf + i) = tpmVendorID[i];*/
-      *((u8 *)buf + i) = tpm_reg_did_vid[0]._raw[i];
+	printf ("[TPM SW HANDLER] READ Vendor and Device ID: len = %d\n", len);
+
+	//for (i = 0; i < len; i++)
+	for (i = 0; i < 4; i++)//XXX
+	{
+	    /*if ((gphys + i) * 1)
+	     *((u8 *)buf + 1) = tpmVendorID[i] ^ x;
+	     else
+	     *((u8 *)buf + i) = tpmVendorID[i];*/
+	    *((u8 *)buf + i) = tpm_reg_did_vid[0]._raw[i];
+	}
     }
-  }
-  else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_RID)) // Get Revision ID
-  {
-    //printf ("[TPM SW HANDLER] READ RevID: len = %d\n", len);
-
-    for (i = 0; i < len; i++)
+    else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_RID)) // Get Revision ID
     {
-      *((u8 *)buf + i) = tpm_reg_rid[0]._raw[i];
+	printf ("[TPM SW HANDLER] READ RevID: len = %d\n", len);
+
+	//for (i = 0; i < len; i++)
+	for (i = 0; i < 1; i++)//XXX
+	{
+	    *((u8 *)buf + i) = tpm_reg_rid[0]._raw[i];
+	}
     }
-  }
-  else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_INT_ENABLE)) // Get Interrupt Control
-  {
-    for (i = 0; i < len; i++)
+    else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_INT_ENABLE)) // Get Interrupt Control
     {
-      *((u8 *)buf + i) = tpm_reg_int_enable[0]._raw[i];
+	//for (i = 0; i < len; i++)
+	for (i = 0; i < 4; i++)//XXX
+	{
+	    *((u8 *)buf + i) = tpm_reg_int_enable[0]._raw[i];
+	}
     }
-  }
-  else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_ACCESS)) // Get Access
-  {
-    //acc_cnt++;
-
-    for (i = 0; i < len; i++)
+    else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_ACCESS)) // Get Access
     {
-      *((u8 *)buf + i) = tpm_reg_access[0]._raw[i];
+	//acc_cnt++;
+
+	//for (i = 0; i < len; i++)
+	for (i = 0; i < 1; i++)//XXX
+	{
+	    *((u8 *)buf + i) = tpm_reg_access[0]._raw[i];
+	}
+	printf("[TPM SW HANDLER] READ TPM Access %d : len = %d\n", acc_cnt, len);
     }
-    //printf("[TPM SW HANDLER] READ TPM Access %d : len = %d\n", acc_cnt, len);
-  }
-  else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_STS)) // Get Status
-  {
-    //sts_cnt++;
-
-    for (i = 0; i < len; i++)
+    else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_STS)) // Get Status
     {
-      *((u8 *)buf + i) = tpm_reg_sts[0]._raw[i];
+	//sts_cnt++;
+
+	//for (i = 0; i < len; i++)
+	for (i = 0; i < 3; i++)//XXX
+	{
+	    *((u8 *)buf + i) = tpm_reg_sts[0]._raw[i];
+	}
+
+	printf ("[TPM SW HANDLER] READ TPM status %d : len = %d\n", sts_cnt, len);
+
+	/*if (fifo_flag)
+	  {
+	  fifo_flag = 0;
+	  sts_flag = 1;
+	  }*/
     }
-
-    //printf ("[TPM SW HANDLER] READ TPM status %d : len = %d\n", sts_cnt, len);
-
-    /*if (fifo_flag)
+    else if (gphys == (TPM_LOCALITY_BASE_N(0) | (TPM_REG_STS+1))) // Get Status + 1
     {
-    fifo_flag = 0;
-    sts_flag = 1;
-  }*/
-}
-else if (gphys == (TPM_LOCALITY_BASE_N(0) | (TPM_REG_STS+1))) // Get Status + 1
-{
-  //sts_cnt++;
+	//sts_cnt++;
 
-  for (i = 0; i < len; i++)
-  {
-    *((u8 *)buf + i) = tpm_reg_sts[0]._raw[i+1];
-  }
+	//for (i = 0; i < len; i++)
+	for (i = 0; i < 2; i++)//XXX
+	{
+	    *((u8 *)buf + i) = tpm_reg_sts[0]._raw[i+1];
+	}
 
-  //printf ("[TPM SW HANDLER] READ TPM status+1 %d : len = %d\n", sts_cnt, len);
-}
-else if (gphys == (TPM_LOCALITY_BASE_N(0) | (TPM_REG_STS+2))) // Get Status + 2
-{
-  //sts_cnt++;
-
-  for (i = 0; i < len; i++)
-  {
-    *((u8 *)buf + i) = tpm_reg_sts[0]._raw[i+2];
-  }
-
-
-  //printf ("[TPM SW HANDLER] READ TPM status+2 %d : len = %d\n", sts_cnt, len);
-}
-else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_DATA_FIFO)) // Get Result
-{
-  // XXX: for debugging
-  vmexit_cnt++;
-  // XXX: for debugging
-  //printf ("[TPM SW HANDLER] READ TPM FIFO: len = %d, current_rsp_offset = %d, rsp_offset = %d\n",
-  //		len, current_rsp_offset, rsp_offset);
-  // XXX: read rsp_buf
-  /*if (current_rsp_offset > rsp_offset)
-  {
-  printf("[TPM SW HANDLER] ERROR: current_rsp_offset > rsp_offset\n");
-  unmapmem (p, len);
-  return -1;
-}*/
-for (i = 0; i < len; i++)
-{
-  *((u8 *)buf + i) = rsp_buf[current_rsp_offset];
-  current_rsp_offset++;
-  /*tpm_reg_sts[0].data_avail = 1; // XXX: end of data*/
-}
-
-if (current_rsp_offset >= rsp_offset)
-{
-  current_rsp_offset = 0;
-  rsp_offset = 0;
-  tpm_reg_sts[0].data_avail = 0; // end of data
-
-  //tpm_reg_sts[0].sts_valid = 0;
-  tpm_reg_sts[0].sts_valid = 1; // XXX: debugging - 20141106
-  // XXX: for debugging
-  //printf("[TPM SW HANDLER] VMEXIT: %d\n", vmexit_cnt);
-  vmexit_cnt = 0;
-  // XXX: for debugging
-}
-}
-else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_INTF_CAPS))
-{
-  //printf ("[TPM SW HANDLER] READ TPM INTF_CAPS: len = %d\n", len);
-
-  for (i = 0; i < len; i++)
-  {
-    *((u8 *)buf + i) = tpm_reg_intf_cap[0]._raw[i];
-  }
-}
-else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_INT_VECTOR))
-{
-  for (i = 0; i < len; i++)
-  {
-    *((u8 *)buf + i) = tpm_reg_int_vec[0]._raw[i];
-  }
-}
-else
-{
-  for (i = 0; i < len; i++)
-  {
-    //if ((TPM_FAKE_MEM_BASE + i) * 1)
-    printk(" [mmio-read-else-printk] phys[i]: %lx\n" , (unsigned long) p[i]);
-    if ((gphys + i) * 1)
+	printf ("[TPM SW HANDLER] READ TPM status+1 %d : len = %d\n", sts_cnt, len);
+    }
+    else if (gphys == (TPM_LOCALITY_BASE_N(0) | (TPM_REG_STS+2))) // Get Status + 2
     {
-      *((u8 *)buf + i) = p[i] ^ x;
+	//sts_cnt++;
+
+	//for (i = 0; i < len; i++)
+	for (i = 0; i < 1; i++)//XXX
+	{
+	    *((u8 *)buf + i) = tpm_reg_sts[0]._raw[i+2];
+	}
+
+
+	printf ("[TPM SW HANDLER] READ TPM status+2 %d : len = %d\n", sts_cnt, len);
+    }
+    else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_DATA_FIFO)) // Get Result
+    {
+	// XXX: for debugging
+	vmexit_cnt++;
+	// XXX: for debugging
+	printf ("[TPM SW HANDLER] READ TPM FIFO: len = %d, current_rsp_offset = %d, rsp_offset = %d\n",
+			len, current_rsp_offset, rsp_offset);
+	// XXX: read rsp_buf
+	/*if (current_rsp_offset > rsp_offset)
+	  {
+	  printf("[TPM SW HANDLER] ERROR: current_rsp_offset > rsp_offset\n");
+	  unmapmem (p, len);
+	  return -1;
+	  }*/
+	//for (i = 0; i < len; i++)
+	for (i = 0; i < 1; i++)
+	{
+	    *((u8 *)buf + i) = rsp_buf[current_rsp_offset];
+	    current_rsp_offset++;
+	    /*tpm_reg_sts[0].data_avail = 1; // XXX: end of data*/
+	}
+
+	if (current_rsp_offset >= rsp_offset)
+	{
+	    current_rsp_offset = 0;
+	    rsp_offset = 0;
+	    tpm_reg_sts[0].data_avail = 0; // end of data
+
+	    //tpm_reg_sts[0].sts_valid = 0;
+	    tpm_reg_sts[0].sts_valid = 1; // XXX: debugging - 20141106
+	    // XXX: for debugging
+	    printf("[TPM SW HANDLER] VMEXIT: %d\n", vmexit_cnt);
+	    vmexit_cnt = 0;
+	    // XXX: for debugging
+	}
+    }
+    else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_INTF_CAPS))
+    {
+	printf ("[TPM SW HANDLER] READ TPM INTF_CAPS: len = %d\n", len);
+
+	//for (i = 0; i < len; i++)
+	for (i = 0; i < 4; i++)//XXX
+	{
+	    *((u8 *)buf + i) = tpm_reg_intf_cap[0]._raw[i];
+	}
+    }
+    else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_INT_VECTOR))
+    {
+	//for (i = 0; i < len; i++)
+	for (i = 0; i < 1; i++)//XXX
+	{
+	    *((u8 *)buf + i) = tpm_reg_int_vec[0]._raw[i];
+	}
     }
     else
     {
-      *((u8 *)buf + i) = p[i];
+	for (i = 0; i < len; i++)
+	{
+	    //if ((TPM_FAKE_MEM_BASE + i) * 1)
+	    debug(" [mmio-read-else-printk] phys[i]: %lx\n" , (unsigned long) p[i]);
+	    if ((gphys + i) * 1) 
+	    {
+		*((u8 *)buf + i) = p[i] ^ x;
+	    }
+	    else
+	    {
+		*((u8 *)buf + i) = p[i];
+	    }
+	}
     }
-  }
-}
 
 }
 void tpm_mmio_write(const struct ept_violation_info_t *info)
@@ -589,104 +597,104 @@ void tpm_mmio_write(const struct ept_violation_info_t *info)
   len = 1<<(info->hsr.dabt.size & 0x00000003);
   buf = (void*)r;
   
-  //    debug("TPM_Write hanadler called");
-  if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_ACCESS)) // Write TPM commands
-  {
-    //debug ("[TPM SW HANDLER] WRITE ACCESS : %lx\n", (unsigned long **)buf);
-
-    tpm_reg_access[0]._raw[0] |= *((u8 *)buf);
-  }
-  else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_INT_VECTOR))
-  {
-    //debug ("[TPM SW HANDLER] WRITE TPM_INT_VECTORa\n");
-    tpm_reg_int_vec[0]._raw[0] |= *((u8 *)buf);
-  }
-  else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_INT_ENABLE))
-  {
-    //debug ("[TPM SW HANDLER] WRITE TPM_INT_ENABLE\n");
-    tpm_reg_int_enable[0]._raw[0] |= *((u8 *)buf);
-  }
-  else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_DATA_FIFO)) // Write Data
-  {
-    //debug ("[TPM SW HANDLER] WRITE DATA FIFO\n");
-    //printf ("DATA: 0x%x, cmd_offset: %d\n", *((u8 *)buf), cmd_offset);
-    // XXX: for debugging
-    vmexit_cnt++;
-    // XXX: for debugging
-
-    cmd_buf[cmd_offset] = *((u8 *)buf);
-    if (cmd_offset < 10) // header
+//    debug("TPM_Write hanadler called");
+    if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_ACCESS)) // Write TPM commands
     {
-      tpm_input_header._raw[input_header_offset] = *((u8 *)buf);
-      input_header_offset--;
+	debug ("[TPM SW HANDLER] WRITE ACCESS : %lx\n", (unsigned long **)buf);
+
+	tpm_reg_access[0]._raw[0] |= *((u8 *)buf);
     }
-    cmd_offset++;
-
-    if (cmd_offset == 10)
+    else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_INT_VECTOR))
     {
-      //printf ("tpm_input_header.len = %d\n", tpm_input_header.len);
-      input_header_offset = 9;
+	debug ("[TPM SW HANDLER] WRITE TPM_INT_VECTORa\n");
+	tpm_reg_int_vec[0]._raw[0] |= *((u8 *)buf);
     }
-
-    tpm_reg_sts[0].expect = 1;
-    tpm_reg_sts[0].sts_valid = tpm_reg_sts[0].expect | tpm_reg_sts[0].data_avail;
-
-    if (cmd_offset >= 10)
+    else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_INT_ENABLE))
     {
-      if (tpm_input_header.len == cmd_offset) // no more data
-      {
-        tpm_reg_sts[0].expect = 0;
-
-        //tpm_reg_sts[0].sts_valid = tpm_reg_sts[0].expect | tpm_reg_sts[0].data_avail;
-        tpm_reg_sts[0].sts_valid = 1; // XXX: debugging - 20141106
-      }
+	debug ("[TPM SW HANDLER] WRITE TPM_INT_ENABLE\n");
+	tpm_reg_int_enable[0]._raw[0] |= *((u8 *)buf);
     }
-
-    /*if (sts_flag)
+    else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_DATA_FIFO)) // Write Data
     {
-    tpm_reg_sts[0].expect = 0;
-    //tpm_reg_sts[0].command_ready = 0; // XXX: right?
-    sts_flag = 0;
-  }
-  else
-  fifo_flag = 1;*/
-}
-else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_STS))
-{
-  //debug ("[TPM SW HANDLER] WRITE STS\n");
-  //printf ("TPM_REG_STS: 0x%x, Buf: 0x%x\n", tpm_reg_sts[0]._raw[0], *((u8 *)buf));
+	debug ("[TPM SW HANDLER] WRITE DATA FIFO\n");
+	printf ("DATA: 0x%x, cmd_offset: %d\n", *((u8 *)buf), cmd_offset);
+	// XXX: for debugging
+	vmexit_cnt++;
+	// XXX: for debugging
 
-  tpm_reg_sts[0]._raw[0] |= *((u8 *)buf);
-  //printf ("TPM_REG_STS RESULT: 0x%x\n", tpm_reg_sts[0]._raw[0]);
+	cmd_buf[cmd_offset] = *((u8 *)buf);
+	if (cmd_offset < 10) // header
+	{
+	    tpm_input_header._raw[input_header_offset] = *((u8 *)buf);
+	    input_header_offset--;
+	}
+	cmd_offset++;
 
-  if (tpm_reg_sts[0].tpm_go) // Transmit swtpm
-  {
-    //printf ("TPM Status: tpm_go!! - cmd_offset: %d\n", cmd_offset);
-    //tpm_reg_sts[0].expect = 0;
+	if (cmd_offset == 10)
+	{
+	    printf ("tpm_input_header.len = %d\n", tpm_input_header.len);
+	    input_header_offset = 9;
+	}
 
-    int res;
+	tpm_reg_sts[0].expect = 1;
+	tpm_reg_sts[0].sts_valid = tpm_reg_sts[0].expect | tpm_reg_sts[0].data_avail;
 
-    current_rsp_offset = 0;
-    //rsp_offset = 0;
-    rsp_offset = TPM_RSP_SIZE_MAX;
+	if (cmd_offset >= 10)
+	{
+	    if (tpm_input_header.len == cmd_offset) // no more data
+	    {
+		tpm_reg_sts[0].expect = 0;
 
-    res = integrate_swtpm (cmd_buf, &cmd_offset, rsp_buf, &rsp_offset); // XXX: HERE
-    //printf("---rsp_buf (length: %d) ---\n", rsp_offset);
-    //for (i = 0; i < rsp_offset; i++)
-    //	printf("0x%x ", rsp_buf[i]);
-    //printf("\n");
-    tpm_reg_sts[0].data_avail = 1;
-    tpm_reg_sts[0].expect = 0;
-    tpm_reg_sts[0].tpm_go = 0;
-    tpm_reg_sts[0].sts_valid = tpm_reg_sts[0].expect | tpm_reg_sts[0].data_avail;
+		tpm_reg_sts[0].sts_valid = tpm_reg_sts[0].expect | tpm_reg_sts[0].data_avail;
+		tpm_reg_sts[0].sts_valid = 1; // XXX: debugging - 20141106
+	    }
+	}
 
-    cmd_offset = 0;
-  }
-}
-else
-{
-  debug("===== gphys: %llx =====\n", gphys);
-}
+	/*if (sts_flag)
+	  {
+	  tpm_reg_sts[0].expect = 0;
+	//tpm_reg_sts[0].command_ready = 0; // XXX: right?
+	sts_flag = 0;
+	}
+	else
+	fifo_flag = 1;*/
+    }
+    else if (gphys == (TPM_LOCALITY_BASE_N(0) | TPM_REG_STS))
+    {
+	debug ("[TPM SW HANDLER] WRITE STS\n");
+	printf ("TPM_REG_STS: 0x%x, Buf: 0x%x\n", tpm_reg_sts[0]._raw[0], *((u8 *)buf));
+
+	tpm_reg_sts[0]._raw[0] |= *((u8 *)buf);
+	printf ("TPM_REG_STS RESULT: 0x%x\n", tpm_reg_sts[0]._raw[0]);
+
+	if (tpm_reg_sts[0].tpm_go) // Transmit swtpm
+	{
+	    
+	    //tpm_reg_sts[0].expect = 0;
+
+	    int res;
+printf ("TPM Status: tpm_go!! - cmd_offset: %d\n", cmd_offset);
+	    current_rsp_offset = 0;
+	    rsp_offset = 0;
+	    rsp_offset = TPM_RSP_SIZE_MAX; //XXX
+
+	    res = integrate_swtpm (cmd_buf, &cmd_offset, rsp_buf, &rsp_offset); // XXX: HERE
+	    // printf("---rsp_buf (length: %d) ---\n", rsp_offset);
+	    //for (i = 0; i < rsp_offset; i++)
+	    //	printf("0x%x ", rsp_buf[i]);
+	    //printf("\n");
+	    tpm_reg_sts[0].data_avail = 1;
+	    tpm_reg_sts[0].expect = 0;
+	    tpm_reg_sts[0].tpm_go = 0;
+	    tpm_reg_sts[0].sts_valid = tpm_reg_sts[0].expect | tpm_reg_sts[0].data_avail;
+
+	    cmd_offset = 0;
+	}
+    }
+    else
+    {
+	debug("===== gphys: %llx =====\n", gphys);
+    }
 }
 #else
 int tpm_fake_handler (void *data, phys_t gphys, bool wr, void *buf, uint len, u32 flags)

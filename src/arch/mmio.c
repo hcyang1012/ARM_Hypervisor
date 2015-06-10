@@ -9,6 +9,7 @@ int handle_mmio(struct ept_violation_info_t *info)
 {
   paddr_t gpa = info->gpa;
   //SWTPM
+  // printf("Register : R%d\n", info->hsr.dabt.reg);
   if(TPM_MEM_BASE <= gpa && gpa < (TPM_MEM_BASE + TPM_MEM_LEN))
   {
     if(info->hsr.dabt.write)
@@ -35,4 +36,13 @@ void init_mmio(void)
   tpm_entry->p2m.write = 0;
   apply_ept(tpm_entry);
   printf("TPM Entry : 0x%x\n",(unsigned long)tpm_entry->bits);
+}
+
+int isMMIO(paddr_t gpa)
+{
+  if(TPM_MEM_BASE <= gpa && gpa < (TPM_MEM_BASE + TPM_MEM_LEN))
+  {
+    return 1;
+  }
+  return 0;
 }
