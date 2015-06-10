@@ -9,7 +9,7 @@
 
 #define LPAE_SHIFT      9
 #define LPAE_ENTRIES    (_AC(1,U) << LPAE_SHIFT)
-#define LPAE_L1_SIZE    (3)
+#define LPAE_L1_SIZE    (8)
 #define LPAE_L2_SIZE    (LPAE_L1_SIZE * LPAE_ENTRIES)
 #define LPAE_L3_SIZE    (LPAE_L2_SIZE * LPAE_ENTRIES)
 

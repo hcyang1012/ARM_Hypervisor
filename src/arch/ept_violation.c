@@ -39,14 +39,16 @@ void apply_ept(lpae_t *ept)
 }
 void ept_violation_handler(struct ept_violation_info_t *info)
 {
-  // lpae_t *ept;
-  // unsigned long tmp;
-  // unsigned long hcr = READ_SYSREG(HCR_EL2);
-  //
-  // printf("EPT Violation : %s\n",info.reason == PREFETCH ? "prefetch" : "data");
-  // printf("PC : %x\n",vcpu.hyp_lr);
-  // printf("GVA : 0x%x\n",info.gva);
-  // printf("GPA : 0x%x\n",(unsigned long)info.gpa);
+  lpae_t *ept;
+  unsigned long tmp;
+  
+  printf("EPT Violation : %s\n",info->reason == PREFETCH ? "prefetch" : "data");
+  printf("PC : %x\n",vcpu.hyp_lr);
+  printf("GVA : 0x%x\n",info->gva);
+  printf("GPA : 0x%x\n",(unsigned long)info->gpa);
+  ept = get_ept_entry(info->gpa);
+  tmp = ept->bits & 0xFFFFFFFF;
+  printf("EPT Entry : 0x%x(0x%x)\n",ept,tmp);  
   if(handle_mmio(info))
   {
 
@@ -97,10 +99,10 @@ int gva_to_ipa(vaddr_t va, paddr_t *paddr)
     return 0;
 }
 
-extern lpae_t *ept_L2_root;
+extern lpae_t *ept_L3_root;
 lpae_t *get_ept_entry(paddr_t gpa)
 {
   unsigned long page_num;
-  page_num = (gpa >> 21);
-  return &ept_L2_root[page_num];
+  page_num = (gpa >> 12);
+  return &ept_L3_root[page_num];
 }

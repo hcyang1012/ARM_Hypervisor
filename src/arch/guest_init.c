@@ -4,6 +4,7 @@
 #include <asm/page.h>
 #include <asm/types.h>
 #include <asm/guest_init.h>
+#include <asm/ept_violation.h>
 #include <asm/mmio.h>
 #include <string.h>
 #include <config.h>
@@ -48,7 +49,7 @@ void guest_init(void)
 /* It is determined depending on whether the address is for device or memory */
 static bool isInMemory(unsigned long gpa)
 {
-  if(RAM_START <= gpa && gpa <= RAM_END)
+  if(RAM_START <= gpa && gpa < RAM_END)
   {
     return 1;
   }
@@ -60,24 +61,35 @@ static bool isInMemory(unsigned long gpa)
 
 extern lpae_t ept_L1[];
 lpae_t *ept_L2_root;
-//lpae_t *ept_L3_root;
+lpae_t *ept_L3_root;
 void guest_ept_init(void)
 {
-  int index_l1, index_l2;
-  unsigned long gpa = 0;
+  int index_l1, index_l2, index_l3;
+  unsigned long long  gpa = 0;
   unsigned long vttbr_val = (unsigned long)ept_L1;
   unsigned long hcr;
   
   /* Calculate next level page table address */
-  ept_L2_root = (lpae_t*) (((unsigned long)ept_L1 | (1 << 12)) & ~0xFFF);
+  /* Level 2 */
+  ept_L2_root = &ept_L1[LPAE_L1_SIZE];
+  ept_L2_root = (lpae_t*) (((unsigned long)ept_L2_root + (1 << 12)) & ~0xFFF); /* Align */  
+  //ept_L2_root = (lpae_t*) (((unsigned long)ept_L1 | (1 << 12)) & ~0xFFF);
+  /* Level 3 */
+  ept_L3_root = &ept_L2_root[LPAE_L2_SIZE];
+  //ept_L3_root = (lpae_t*) (((unsigned long)ept_L3_root + (1 << 12)) & ~0xFFF); /* Align */
+  
    
   printf("EPT root address : 0x%x\n",ept_L1);
   printf("ept_L2_root : 0x%x\n",ept_L2_root);
-
+  printf("ept_L3_root : 0x%x\n",ept_L3_root);
+  printf("LPAE_L1_SIZE : %d\n",LPAE_L1_SIZE);
+  printf("LPAE_L2_SIZE : %d\n",LPAE_L2_SIZE);
+  printf("LPAE_L3_SIZE : %d\n",LPAE_L3_SIZE);
+  
   for(index_l1 = 0 ; index_l1 < LPAE_L1_SIZE ; index_l1++)
   {
     lpae_t entry_l1;
-    lpae_t *ept_l2 = ept_L2_root + LPAE_ENTRIES * index_l1;
+    lpae_t *ept_l2 = &ept_L2_root[LPAE_ENTRIES * index_l1];
     
     /* Set first level page table entries */
     entry_l1.bits = 0;
@@ -85,84 +97,74 @@ void guest_ept_init(void)
     entry_l1.p2m.table = 1;
     entry_l1.bits |= (unsigned long)ept_l2;
     ept_L1[index_l1].bits = entry_l1.bits;
-    printf("ept_L1[%d] : 0x%x (At 0x%x)\n",index_l1,ept_L1[index_l1].bits,&ept_L1[index_l1]);
-    
     for(index_l2 = 0 ; index_l2 < LPAE_ENTRIES ; index_l2++)
     {
       lpae_t entry_l2;
+      lpae_t *ept_l3 = &ept_L3_root[LPAE_ENTRIES * LPAE_ENTRIES * index_l1  + LPAE_ENTRIES * index_l2];
+      //printf("(EPT_L3)0x%x - %d/%d (%d)\n",ept_l3, index_l1,index_l2, LPAE_L2_SIZE * LPAE_ENTRIES * index_l1  + LPAE_ENTRIES * index_l2);
+    
       /* Set second level page table entries */
-      /* 2MB Page */
       entry_l2.bits = 0;
       entry_l2.p2m.valid = 1;
-      entry_l2.p2m.table = 0;
-      entry_l2.p2m.af = 1;
-      entry_l2.p2m.read = 1;
-      entry_l2.p2m.write = 1;
-      
-      if(isInMemory(gpa))
-      {
-        /* RAM area */
-        entry_l2.p2m.mattr = 0xF; /* 1111b: Outer Write-back Cacheable / Inner write-back cacheable */
-      }
-      else
-      {
-        /* Device area */
-        entry_l2.p2m.mattr = 0x1; /* 0001b: Device Memory */
-        entry_l2.p2m.sh = 0x0;
-        entry_l2.p2m.xn = 1;
-      }
-      entry_l2.bits |= gpa;
-      
-      gpa += (2 * 1024 * 1024); /* 2MB section */
-      
+      entry_l2.p2m.table = 1;
+      entry_l2.bits |= (unsigned long)ept_l3;
       ept_l2[index_l2].bits = entry_l2.bits;
-      printf("\tept_l2[%d] : 0x%x (At 0x%x)\n",index_l2, ept_l2[index_l2].bits,&ept_l2[index_l2]);
- 
+      
+      for(index_l3 = 0 ; index_l3 < LPAE_ENTRIES ; index_l3++)
+      {
+        lpae_t entry_l3;
+        /* Set third level page table entries */
+        /* 4KB Page */
+        entry_l3.bits = 0;
+        entry_l3.p2m.valid = 1;
+        entry_l3.p2m.table = 1;
+        entry_l3.p2m.af = 1;
+        entry_l3.p2m.read = 1;
+        entry_l3.p2m.write = 1;
+        entry_l3.p2m.mattr = 0xF;
+        entry_l3.p2m.sh = 0x03;
+        entry_l3.p2m.xn = 0x0;
+            
+        if(isInMemory(gpa))
+        {
+          /* RAM area */
+          entry_l3.p2m.sh = 0x03;
+          entry_l3.p2m.mattr = 0xF; /* 1111b: Outer Write-back Cacheable / Inner write-back cacheable */
+        }
+        else
+        {
+          /* Device area */
+          entry_l3.p2m.mattr = 0x1; /* 0001b: Device Memory */
+          entry_l3.p2m.sh = 0x0;
+          entry_l3.p2m.xn = 1;          
+        }
+        entry_l3.bits |= gpa;
+        ept_l3[index_l3].bits = entry_l3.bits;
+        // {
+        //   /* For logging.. */
+        //   lpae_t *pept;
+        //   pept = get_ept_entry(gpa);
+        //   if(pept != &ept_l3[index_l3])
+        //   {
+        //     printf("(Index)%d/%d/%d - ", index_l1,index_l2,index_l3);
+        //     printf("(L1)0x%x - ",(unsigned long)entry_l1.bits);
+        //     printf("(L2Adr)0x%x - ",(unsigned long)&ept_l2[index_l2]);
+        //     printf("(L2)0x%x - ",(unsigned long)entry_l2.bits);
+        //     printf("(L3Adr)0x%x - ",(unsigned long)&ept_l3[index_l3]);
+        //     printf("(L3)0x%x - ",(unsigned long)entry_l3.bits);
+        //     printf("(GPA)0x%x - ",(unsigned long)gpa);            
+        //     printf("Error - ");
+        //     printf("(EPT)0x%x - ",ept_l3);
+        //     printf("(PAddr)0x%x - (PVAL)0x%x\n",pept,(unsigned long)pept->bits);            
+        //   }            
+        // }
+        gpa += (4*1024); /* 4KB page frame */
+      }
+      apply_ept(ept_l3);
     }
+    apply_ept(ept_l2);
   }
-    
-  //   lpae_t e;
-  //   lpae_t *ept_L2 = (&guest_ept_L1[LPAE_L1_SIZE] + LPAE_ENTRIES * index_l1);
-  //   e.bits = 0x3; //Valid & Page Table
-  //   e.bits |= (unsigned long)ept_L2;
-  //   guest_ept_L1[index_l1] = e;
-  //   printf("guest_ept_L1[%d] : 0x%x\n",index_l1, guest_ept_L1[index_l1]);
-  //   for(index_l2 = 0 ; index_l2 < LPAE_ENTRIES ; index_l2++)
-  //   {
-  //     lpae_t e;
-  //     e.bits = 0
-  //     e.p2m.sh = 0x3;
-  //     e.p2m.table = 0;
-  //     e.p2m.valid = 1;
-  //     e.p2m.af = 1;
-  //     if(isInMemory(gpa))
-  //     {
-  //       /* Set attibutes for RAM area */
-  //       e.p2m.mattr = 0xF; /* 1111b: Outer Write-back Cacheable / Inner write-back cacheable */
-  //       e.p2m.read = 1;
-  //       e.p2m.write = 1;
-  //       // e.p2m.read = 0;
-  //       // e.p2m.write = 0;
-  //       e.p2m.xn = 0;
-  //     }
-  //     else
-  //     {
-  //       /* Set attributes for Device area */
-  //       e.p2m.mattr = 0x1; /* 0001b: Device memory */
-  //       e.p2m.read = 1;
-  //       e.p2m.write = 1;
-  //       e.p2m.xn = 1;
-  //       e.p2m.sh = 0x0;
-  //     }
-
-  //     //e.bits = 0x7FD; /* Read / Write OK */
-  //     //e.bits = 0x73D; /* No Acess permission */
-  //     e.bits |= gpa;
-  //     ept_L2[index_l2] = e;
-  //     gpa += (1024*1024*2);
-  //     printf("ept_L2[%d] : 0x%x (at 0x%x)\n",index_l2,ept_L2[index_l2],(unsigned long)&(ept_L2[index_l2]));
-  //   }
-  // }
+  apply_ept(ept_L1);
   dsb();
   isb();
   //init_mmio();

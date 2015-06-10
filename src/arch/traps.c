@@ -73,6 +73,7 @@ void do_handler_hvc(void)
   switch(hsr.ec)
   {
     case HSR_EC_INSTR_ABORT_LOWER_EL:   // EPT Violation - Prefetch Abort
+      printf("Prefetch abort : %x\n",hsr.bits);
       ept_violation_info.hsr.bits = hsr.bits;
       ept_violation_info.reason = PREFETCH;
       ept_violation_info.gva = READ_CP32(HIFAR);
