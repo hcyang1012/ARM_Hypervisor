@@ -195,7 +195,7 @@ void guest_ept_init(void)
     // Turn on Stage 2 Address Translation
     //hcr = READ_SYSREG(HCR_EL2);
     hcr = 0x0;
-    WRITE_SYSREG(hcr | HCR_BSU_INNER | HCR_SWIO | HCR_VM, HCR_EL2);
+    WRITE_SYSREG(hcr | HCR_BSU_INNER | HCR_SWIO | HCR_TGE| HCR_VM, HCR_EL2);
     isb();
 }
 

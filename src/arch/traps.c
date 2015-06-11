@@ -63,7 +63,98 @@ void do_handler_svc(void)
   while(1);
 }
 
-extern void return_guest(void);
+/* This function emulates TakeSVCException() function which is described in the ARM Architecture Reference Manual */
+extern cpu_t vcpu;
+static void guest_svc(void)
+{
+  unsigned long sctlr_val;
+  unsigned long vbar_valid;
+  unsigned long sctlr_te, sctlr_ee;
+  unsigned long guest_exception_vector_addr;
+  unsigned long guest_svc_return_addr;
+  const unsigned long vect_offset = 8;
+  
+  /* Read exception vector address of guest VM */
+  /*
+      SCTLR.V : SCTLR[13]
+      the Non-secure SCTLR.V bit determines the Exception base address:
+      V == 0 The Non-secure VBAR holds the Exception base address.
+      V == 1 Exception base address = 0xFFFF0000, the Hivecs setting.
+  */
+  sctlr_val = READ_SYSREG32(SCTLR_EL1);
+  vbar_valid = sctlr_val & (1 << 13);
+  
+  printf("SCTLR : 0x%x\n",(unsigned long)sctlr_val);
+
+  // R[14] = new_lr_value;
+  guest_svc_return_addr = vcpu.hyp_lr;  
+  __asm__ __volatile__(
+    "msr lr_svc,%0 \r\n"
+    : /* Output */
+    : "r"(guest_svc_return_addr) /* Input */
+    : /* Clobber */
+    );  
+    
+  // new_spsr_value = CPSR;
+  // SPSR[] = new_spsr_value;
+  printf("SPSR : 0x%x\n",(unsigned long)vcpu.hyp_spsr);
+  __asm__ __volatile__(
+    "msr SPSR_svc,%0 \r\n"
+    : /* Output */
+    : "r"(vcpu.hyp_spsr) /* Input */
+    : /* Clobber */
+    );    
+
+  if(vbar_valid)
+  {
+    guest_exception_vector_addr = 0xFFFF0000;
+  }
+  else
+  {
+    guest_exception_vector_addr = READ_SYSREG32(VBAR_EL1);
+    
+  }
+  printf("VBAR : 0x%x\n", (unsigned long)guest_exception_vector_addr);
+  vcpu.hyp_lr = guest_exception_vector_addr + vect_offset;
+  printf("vcpu.hyp_lr : 0x%x\n", (unsigned long)vcpu.hyp_lr);
+  
+  // CPSR.M = '10011';
+  vcpu.hyp_spsr &= (~(0x1F));
+  vcpu.hyp_spsr |= Mode_SVC; 
+        
+  // CPSR.I = '1';
+  vcpu.hyp_spsr |= (1 << 7);
+ 
+  // CPSR.IT = '00000000';
+  vcpu.hyp_spsr &= 0xF9FF03FF;
+   
+  // CPSR.J = '0'; CPSR.T = SCTLR.TE; // TE=0: ARM, TE=1: Thumb
+  vcpu.hyp_spsr &= (~(1 << 24));
+  sctlr_te = sctlr_val & (1 << 30);
+  if(sctlr_te)
+  {
+    printf("TE\n");
+    vcpu.hyp_spsr |= (1 << 5);
+  }
+  else
+  {
+    vcpu.hyp_spsr &= (~(1 << 5));
+  }
+  
+  // CPSR.E = SCTLR.EE; // EE=0: little-endian, EE=1: big-endian
+  sctlr_ee = sctlr_val & (1 << 25);
+  if(sctlr_ee)
+  {
+    printf("EE\n");
+    vcpu.hyp_spsr |= (1 << 9);
+  }
+  else
+  {
+    vcpu.hyp_spsr &= (~(1 << 9));
+  }
+  printf("Write CPSR : 0x%x\n",(unsigned long)vcpu.hyp_spsr);
+}
+
 void do_handler_hvc(void)
 {
   union hsr hsr = { .bits = READ_SYSREG32(ESR_EL2) };
@@ -86,6 +177,10 @@ void do_handler_hvc(void)
       ept_violation_info.gva = READ_CP32(HDFAR);
       gva_to_ipa(ept_violation_info.gva, &ept_violation_info.gpa);
       ept_violation_handler(&ept_violation_info);
+      break;
+    case HSR_EC_SVC32:
+      printf("SVC Instruction called : %x\n",hsr.ec);
+      guest_svc();
       break;
     default:
       printf("Unknown HVC Exception : %x\n",hsr.ec);

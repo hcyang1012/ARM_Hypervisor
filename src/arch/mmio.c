@@ -40,9 +40,9 @@ void init_mmio(void)
 
 int isMMIO(paddr_t gpa)
 {
-  if(TPM_MEM_BASE <= gpa && gpa < (TPM_MEM_BASE + TPM_MEM_LEN))
-  {
-    return 1;
-  }
+  // if(TPM_MEM_BASE <= gpa && gpa < (TPM_MEM_BASE + TPM_MEM_LEN))
+  // {
+  //   return 1;
+  // }
   return 0;
 }
