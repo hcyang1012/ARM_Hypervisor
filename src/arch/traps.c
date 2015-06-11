@@ -74,6 +74,8 @@ static void guest_svc(void)
   unsigned long guest_svc_return_addr;
   const unsigned long vect_offset = 8;
   
+  
+  spin_lock(&vcpu.lock);
   /* Read exception vector address of guest VM */
   /*
       SCTLR.V : SCTLR[13]
@@ -153,6 +155,7 @@ static void guest_svc(void)
     vcpu.hyp_spsr &= (~(1 << 9));
   }
   printf("Write CPSR : 0x%x\n",(unsigned long)vcpu.hyp_spsr);
+  spin_unlock(&vcpu.lock);
 }
 
 void do_handler_hvc(void)

@@ -10,3 +10,4 @@ BUILD-ARCH += arch/traps.o
 BUILD-ARCH += arch/ept_violation.o
 BUILD-ARCH += arch/debug.o
 BUILD-ARCH += arch/mmio.o
+BUILD-ARCH += arch/spinlock.o

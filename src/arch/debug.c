@@ -2,6 +2,7 @@
 #include <asm/types.h>
 #include <asm/vcpu.h>
 #include <asm/processor.h>
+#include <asm/spinlock.h>
 #include <config.h>
 #include <stdio.h>
 //lpae_t guest_ept_L1[LPAE_ENTRIES]                               __attribute__((__aligned__(4096)));
@@ -12,6 +13,7 @@ extern cpu_t vcpu;
 void print_vcpu(void)
 {
   int reg;
+  spin_lock(&vcpu.lock);
   for(reg = 0 ; reg < 13 ; reg++)
   {
     printf("R%d : %x\n",vcpu.regs[reg]);
@@ -31,4 +33,5 @@ void print_vcpu(void)
   // printf("R12 : %x\n", vcpu.r12);
   printf("SPSR : %x\n", vcpu.hyp_spsr);
   printf("LR : %x\n", vcpu.hyp_lr);
+  spin_unlock(&vcpu.lock);
 }

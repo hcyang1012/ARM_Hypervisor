@@ -6,6 +6,7 @@
 #include <asm/ept_violation.h>
 #include <asm/mmio.h>
 #include <asm/vcpu.h>
+#include <asm/spinlock.h>
 #include <config.h>
 #include <stdio.h>
 
@@ -15,7 +16,9 @@ extern lpae_t ept_L1[];
 
 void advance_pc(struct ept_violation_info_t *info)
 {
+  spin_lock(&vcpu.lock);
   vcpu.hyp_lr += info->hsr.len ? 4 : 2;
+  spin_unlock(&vcpu.lock);
 }
 static inline void flush_tlb(void)
 {
