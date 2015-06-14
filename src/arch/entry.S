@@ -29,7 +29,7 @@ save_guest_context;                                              \
 bl do_handler_##trap;                                            \
 restore_guest_context;																					\
 /*cpsie i;																										\*/\
-eret;
+eret;\
 
 .align 5
 GLOBAL(hyp_traps_vector)
