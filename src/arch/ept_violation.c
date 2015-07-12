@@ -20,6 +20,13 @@ void advance_pc(struct ept_violation_info_t *info)
   vcpu.hyp_lr += info->hsr.len ? 4 : 2;
   spin_unlock(&vcpu.lock);
 }
+
+void advance_pc_default()
+{
+  spin_lock(&vcpu.lock);
+  vcpu.hyp_lr += 4;
+  spin_unlock(&vcpu.lock);  
+}
 static inline void flush_tlb(void)
 {
   dsb(sy);
