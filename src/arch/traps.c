@@ -58,9 +58,9 @@ void do_handler_fiq(void)
 
 void do_handler_svc(void)
 {
-  printf("do_svc\n");
+  printf("hypcall accepted\n");
+  advance_pc_default();
   print_vcpu();
-  while(1);
 }
 
 /* This function emulates TakeSVCException() function which is described in the ARM Architecture Reference Manual */
