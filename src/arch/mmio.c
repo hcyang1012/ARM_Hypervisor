@@ -1,6 +1,5 @@
 #include <asm/ept_violation.h>
 #include <asm/types.h>
-#include <swtpm/swtpm.h>
 #include <asm/page.h>
 #include <stdio.h>
 #include <asm/spinlock.h>
@@ -12,21 +11,7 @@ extern cpu_t vcpu;
 int handle_mmio(struct ept_violation_info_t *info)
 {
   paddr_t gpa = info->gpa;
-  //SWTPM
-  if(TPM_MEM_BASE <= gpa && gpa < (TPM_MEM_BASE + TPM_MEM_LEN))
-  {
-    if(info->hsr.dabt.write)
-    {
-      tpm_mmio_write(info);
-    }
-    else /* Read */
-    {
-      tpm_mmio_read(info);
-    }
-    advance_pc(info);
-    return 1;
-  }
-  else if (ODRID_BASE <= gpa && gpa <= (ODRID_BASE + 4096))
+  if (ODRID_BASE <= gpa && gpa <= (ODRID_BASE + 4096))
   {
     if(info->hsr.dabt.write)
     {

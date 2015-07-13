@@ -35,9 +35,6 @@ LINK_TARGETS += $(COMMON_BIN)/*.o
 # LINK_TARGETS += $(DRIVER_BIN)/char/*.o
 # LINK_TARGETS += $(DRIVER_BIN)/passthrough/*.o
 # LINK_TARGETS += $(XSM_BIN)/*.o
-LINK_TARGETS += $(MODULES_BIN)/swtpm/*.o
-LINK_TARGETS += $(MODULES_BIN)/swtpm/tpmcrypto/*.o
-LINK_TARGETS += $(MODULES_BIN)/swtpm/bn/*.o
 #End of link targets
 
 # for early printk

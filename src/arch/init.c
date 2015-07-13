@@ -6,7 +6,6 @@
 #include <asm/cpregs.h>
 #include <asm/processor.h>
 #include <asm/mmio.h>
-#include <swtpm/init.h>
 
 int putchar(int c)
 {

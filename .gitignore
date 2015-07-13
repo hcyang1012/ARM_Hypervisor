@@ -333,3 +333,4 @@ docs/figs/*.png
 xen4.5-uImage
 hypervisor
 xen-uImage
+uImage
