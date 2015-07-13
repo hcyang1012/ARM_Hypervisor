@@ -47,3 +47,4 @@ ToDo
 
 
 ※ Most boot codes are based on Xen on ARM project, but I don't know how to determine the license of this project. Please send me a message if someone knows something about this issue.
+※  This  project is also tested on Arndale 5250 Board.(Unofficial).
