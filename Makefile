@@ -8,10 +8,10 @@ include $(MODULES_SRC)/build.mk
 all:clean elf
 	$(OBJCOPY) -O binary -S boot.o hypervisor
 	cloc src include --by-file
-	mkimage -A arm -T kernel -a 0x80200000 -e 0x80200000 -C none -d "hypervisor" xen4.5-uImage
+	mkimage -A arm -T kernel -a 0x80200000 -e 0x80200000 -C none -d "hypervisor" uImage
 
 elf: build
-	$(LD) $(LDFLAGS) -T xen.lds -o boot.o  $(LINK_TARGETS)
+	$(LD) $(LDFLAGS) -T linker.lds -o boot.o  $(LINK_TARGETS)
 
 build: build-arch build-common drivers xsm modules
 
